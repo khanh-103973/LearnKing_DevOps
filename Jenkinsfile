@@ -40,15 +40,15 @@ pipeline {
                     string(credentialsId: 'db-conn', variable: 'DB_CONN'),
                     file(credentialsId: 'docker-compose-file', variable: 'DOCKER_COMPOSE_PATH')
                 ]) {
-                    sh '''
+                    sh '''  
                     mkdir -p /var/lib/jenkins/project
                     cp "$DOCKER_COMPOSE_PATH" /var/lib/jenkins/project/docker-compose.yml
                     cd /var/lib/jenkins/project
                     echo "DB_CONNECTION_STRING=$DB_CONN" > .env
                     echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                    docker compose --env-file .env pull
-                    docker compose --env-file .env down
-                    docker compose --env-file .env up -d
+                    docker compose pull
+                    docker compose down
+                    docker compose up -d
                     docker image prune -f
                     '''
                 }
