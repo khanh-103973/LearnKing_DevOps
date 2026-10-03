@@ -1,0 +1,9 @@
+## Ignore Visual Studio & .NET temporary files
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.env

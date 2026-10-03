@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  api:
+    image: docker.io/khanhnv2605/server-lms-net:latest
+    container_name: lms-api
+    restart: always
+    ports:
+      - "3007:86"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: ${DB_CONNECTION_STRING}
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: 0
+    env_file:
+      - .env
+
+networks:
+  app-network:
+    driver: bridge

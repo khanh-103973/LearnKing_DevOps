@@ -1,0 +1,6 @@
+@LearnKing.Api_HostAddress = http://localhost:5101
+
+GET {{LearnKing.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
