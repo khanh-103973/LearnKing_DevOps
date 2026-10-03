@@ -47,6 +47,7 @@ pipeline {
                     sh '''
                     mkdir -p ~/.ssh
                     chmod 700 ~/.ssh
+                    chmod 600 "$SSH_KEY_FILE"
                     
                     scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no "$DOCKER_COMPOSE_PATH" ${SSH_USER}@127.0.0.1:~/project/docker-compose.yml
                     
