@@ -45,6 +45,7 @@ pipeline {
                     cp "$DOCKER_COMPOSE_PATH" /var/lib/jenkins/project/docker-compose.yml
                     cd /var/lib/jenkins/project
                     echo "DB_CONNECTION_STRING=$DB_CONN" > .env
+                    echo "ASPNETCORE_ENVIRONMENT=Development" >> .env
                     echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
                     docker-compose pull
                     docker-compose down
