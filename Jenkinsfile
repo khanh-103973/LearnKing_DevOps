@@ -47,14 +47,18 @@ pipeline {
                     sh '''
                     mkdir -p ~/.ssh
                     chmod 700 ~/.ssh
-                    cp $DOCKER_COMPOSE_PATH ~/project/docker-compose.yml
-                    cd ~/project
-                    echo "DB_CONNECTION_STRING=$DB_CONN" > .env
-                    echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-                    docker compose --env-file .env pull
-                    docker compose --env-file .env down
-                    docker compose --env-file .env up -d
-                    docker image prune -f
+                    
+                    scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no "$DOCKER_COMPOSE_PATH" ${SSH_USER}@127.0.0.1:~/project/docker-compose.yml
+                    
+                    ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ${SSH_USER}@127.0.0.1 "
+                        mkdir -p ~/project && cd ~/project && \
+                        echo \\"DB_CONNECTION_STRING=$DB_CONN\\" > .env && \
+                        echo \\"$DOCKER_PASS\\" | docker login -u $DOCKER_USER --password-stdin && \
+                        docker compose --env-file .env pull && \
+                        docker compose --env-file .env down && \
+                        docker compose --env-file .env up -d && \
+                        docker image prune -f
+                    "
                     '''
                 }
             }
