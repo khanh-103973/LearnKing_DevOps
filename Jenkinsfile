@@ -41,22 +41,21 @@ pipeline {
                     usernamePassword(credentialsId: 'dockerhub-cred',
                         usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS'),
                     string(credentialsId: 'db-conn', variable: 'DB_CONN'),
-                    file(credentialsId: 'docker-compose-file', variable: 'DOCKER_COMPOSE_PATH')
+                    file(credentialsId: 'docker-compose-file', variable: 'DOCKER_COMPOSE_PATH'),
+                    sshUserPrivateKey(credentialsId: 'server-ssh-key', keyFileVariable: 'SSH_KEY_FILE', usernameVariable: 'SSH_USER')
                 ]) {
-                    sshagent (credentials: ['server-ssh-key']) {
-                        sh '''
-                        scp -o StrictHostKeyChecking=no $DOCKER_COMPOSE_PATH $SERVER_USER@$SERVER_HOST:~/project/docker-compose.yml
-                        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "
-                        cd ~/project && \
-                        echo \\"DB_CONNECTION_STRING=$DB_CONN\\" > .env && \
-                        echo \\"$DOCKER_PASS\\" | docker login -u $DOCKER_USER --password-stdin && \
-                        docker compose --env-file .env pull && \
-                        docker compose --env-file .env down && \
-                        docker compose --env-file .env up -d && \
-                        docker image prune -f
-                        "
-                        '''
-                    }
+                    sh '''
+                    mkdir -p ~/.ssh
+                    chmod 700 ~/.ssh
+                    cp $DOCKER_COMPOSE_PATH ~/project/docker-compose.yml
+                    cd ~/project
+                    echo "DB_CONNECTION_STRING=$DB_CONN" > .env
+                    echo "$DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
+                    docker compose --env-file .env pull
+                    docker compose --env-file .env down
+                    docker compose --env-file .env up -d
+                    docker image prune -f
+                    '''
                 }
             }
         }
