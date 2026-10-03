@@ -10,9 +10,9 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM',
-                  branches: [[name: '*/master']],
+                  branches: [[name: '*/main']],
                   userRemoteConfigs: [[
-                    url: 'https://github.com/khanh-103973/.git',
+                    url: 'https://github.com/khanh-103973/LearnKing_DevOps.git',
                     credentialsId: 'github-pat'
                   ]]
                 ])
