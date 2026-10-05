@@ -50,6 +50,7 @@ pipeline {
                     docker-compose pull
                     docker-compose down
                     docker-compose up -d
+                    docker update --restart unless-stopped lms-api
                     docker image prune -f
                     '''
                 }
