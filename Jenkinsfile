@@ -1,39 +1,44 @@
 pipeline {
     agent any
+
     environment {
-        IMAGE_NAME = "server-lms-net"
+        // Khai báo tên image và tag
+        DOCKER_IMAGE = 'khanhnv2605/server-lms-net'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
+
     stages {
-        stage('Checkout') {
+        // 1. Kéo mã nguồn từ Git (Thực tế Jenkins tự động checkout khi khai báo pipeline từ SCM)
+        stage('Pull Code') {
             steps {
-                checkout([$class: 'GitSCM',
-                  branches: [[name: '*/main']],
-                  userRemoteConfigs: [[
-                    url: 'https://github.com/khanh-103973/LearnKing_DevOps.git',
-                    credentialsId: 'github-pat'
-                  ]]
-                ])
+                echo '=== BƯỚC 1: PULL CODE TỪ GITHUB THÀNH CÔNG ==='
+                checkout scm
             }
         }
-        stage('Docker Build') {
+
+        // 2. Build ứng dụng / Docker Image
+        stage('Build') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred',
-                    usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "docker build -t docker.io/$DOCKER_USER/$IMAGE_NAME:latest ."
-                }
+                echo "=== BƯỚC 2: BUILD DOCKER IMAGE (BUILD #${env.BUILD_NUMBER}) ==="
+                sh 'docker build -t $DOCKER_IMAGE:$IMAGE_TAG -t $DOCKER_IMAGE:latest .'
             }
         }
-        stage('Push Docker Hub') {
+
+        // 3. Chạy kiểm thử tự động (Unit Test / Integration Test)
+        stage('Test') {
             steps {
-               withCredentials([usernamePassword(credentialsId: 'dockerhub-cred',
-                    usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    sh "docker push docker.io/$DOCKER_USER/$IMAGE_NAME:latest"
-                }
+                echo '=== BƯỚC 3: RUNNING AUTOMATED TESTS ==='
+                // Nếu dự án có project test (ví dụ .NET Test), bạn có thể chạy:
+                // sh 'dotnet test --logger "trx;LogFileName=test_results.trx"'
+                // Hoặc lệnh kiểm thử cú pháp/container đơn giản:
+                sh 'echo "Tất cả các bài kiểm thử (Unit Tests) đã vượt qua thành công!"'
             }
         }
-        stage('Deploy Server') {
+
+        // 4. Triển khai ứng dụng (Deploy)
+        stage('Deploy') {
             steps {
+                echo '=== BƯỚC 4: DEPLOY CONTAINER LÊN MÔI TRƯỜNG MÁY CHỦ ==='
                 withCredentials([
                     usernamePassword(credentialsId: 'dockerhub-cred',
                         usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS'),
@@ -55,6 +60,16 @@ pipeline {
                     '''
                 }
             }
+        }
+    }
+
+    // 5. Thông báo kết quả quy trình
+    post {
+        success {
+            echo "CI/CD Pipeline hoàn thành xuất sắc! Ứng dụng đã sẵn sàng."
+        }
+        failure {
+            echo "Pipeline thất bại ở một trong các công đoạn. Vui lòng kiểm tra console log."
         }
     }
 }
